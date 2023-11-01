@@ -47,4 +47,4 @@ async def dailyloop():
         channel = bot.get_channel(1164845979879624726)
         await channel.send("I got here")
 
-bot.run('MTE2NDg0NzQzMjkyOTEyODUwOA.GjJ7Gn.pmBO2bkXNlZlNRiVns5Mi-U6YOPgaS_X5A5rR4')
+bot.run(botToken)

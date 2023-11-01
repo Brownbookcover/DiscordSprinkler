@@ -46,4 +46,4 @@ async def on_ready():
     task_one.start()
     task_two.start()
 
-bot.run('MTE2NDg0NzQzMjkyOTEyODUwOA.GjJ7Gn.pmBO2bkXNlZlNRiVns5Mi-U6YOPgaS_X5A5rR4')
+bot.run(botToken)
