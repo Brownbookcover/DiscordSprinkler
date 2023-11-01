@@ -13,10 +13,11 @@ in2 = 11
 in3 = 13
 
 est=datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-timeforscedule = datetime.time(hour=1, minute=34, tzinfo=est)
+timeforscedule = datetime.time(hour=3, tzinfo=est)
 listoftimes =list()
 listoftimes.append(datetime.time(hour=1, minute=0, tzinfo=est))    #This cant be empty or it thorws an error so making it before the scedule run should be fine
 listofallinfo = list()
+listofallinfo.append([1, 0, 0])
 
 intents = discord.Intents.default()
 intents.members = True
@@ -29,39 +30,40 @@ bot.remove_command("help")
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
-    send_message.start()
+    sceduler.start()
     dailyloop.start()
-    #bot.loop.create_task(background_task())
 
 @tasks.loop(time=timeforscedule)
-async def send_message():
+async def sceduler():
     channel = bot.get_channel(1164845979879624726)
     day = datetime.date.weekday(datetime.datetime.now())
     listoftimes.clear()
     listofallinfo.clear()
     file1 = open('days/'+str(day)+'.txt', 'r')
     Lines = file1.read().splitlines()
-    await channel.send("Todays sceduled runs are...")
+    if len(Lines)!=0:
+        await channel.send("Todays sceduled runs are...")
     for line in Lines:
         timeofday, zone, length = line.split()
         await channel.send(timeofday+":00 : Zone "+zone+" for "+length+" minutes")
         listoftimes.append(datetime.time(hour=int(timeofday), tzinfo=est))
         listofallinfo.append([timeofday, zone, length])
-    #await channel.send(Lines)
-    #await channel.send("Test")
-    await channel.send(listoftimes)
-    await channel.send(listofallinfo)
+    print(listoftimes)
+    print(listofallinfo)
 
-@tasks.loop(time=listoftimes)
+@tasks.loop(minutes=1)
 async def dailyloop():
     channel = bot.get_channel(1164845979879624726)
     today = datetime.datetime.now()
     hour=today.hour
+    minute=today.minute
     boolean = True
-    for i in (0, len(listofallinfo)):
-        if int(listofallinfo[i][0])==hour:
-            await channel.send("Running zone "+listofallinfo[i][1]+" for "+listofallinfo[i][2]+ "mins")
+    for i in range(len(listofallinfo)):
+        if int(listofallinfo[i][0])==hour and minute==0:
+            await channel.send("Running zone "+listofallinfo[i][1]+" for "+listofallinfo[i][2]+ " mins")
             sleeptime = int(listofallinfo[i][2])
+            if(int(listofallinfo[i][1]==0)):
+                boolean = False
             if(int(listofallinfo[i][1])==1):
                 await channel.send("Turning on 1")
                 timeforsleeps.sleep(sleeptime)
