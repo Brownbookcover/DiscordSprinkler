@@ -6,6 +6,9 @@ import datetime
 #from datetime import datetime, time, timedelta
 #import asyncio
 
+file = open('../token.txt', 'r')
+botToken = file.read()
+botToken = str(botToken)
 description='I run some sprinklers'
 
 in1 = 7

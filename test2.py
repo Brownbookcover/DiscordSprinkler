@@ -3,6 +3,10 @@ from discord.ext import commands, tasks
 import datetime
 import asyncio
 
+file = open('../token.txt', 'r')
+botToken = file.read()
+botToken = str(botToken)
+
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -11,6 +15,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 # List to store datetimes defined in task_one
 datetime_list = []
+
 
 @tasks.loop(seconds=10)
 async def task_one():

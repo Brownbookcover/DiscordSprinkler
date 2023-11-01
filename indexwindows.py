@@ -6,6 +6,9 @@ import datetime
 #from datetime import datetime, time, timedelta
 #import asyncio
 
+file = open('../token.txt', 'r')
+botToken = file.read()
+botToken = str(botToken)
 description='I run some sprinklers'
 
 in1 = 7
@@ -188,4 +191,4 @@ async def delete(ctx):
     em.add_field(name= "**Syntax**", value="~delete day number - day(0-6 0=Monday 6=Sunday), look at ~list to know the number to delete")
     await ctx.send(embed=em)
 
-bot.run('MTE2NDg0NzQzMjkyOTEyODUwOA.GjJ7Gn.pmBO2bkXNlZlNRiVns5Mi-U6YOPgaS_X5A5rR4')
+bot.run(botToken)
