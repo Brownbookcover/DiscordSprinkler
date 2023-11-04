@@ -1,10 +1,12 @@
-import RPi.GPIO as GPIO
 import time as timeforsleeps
 import discord
 from discord.ext import commands, tasks
 import datetime
-#from datetime import datetime, time, timedelta
-#import asyncio
+import platform
+runningOs = "Win"
+if platform.system() != "Windows":
+    import RPi.GPIO as GPIO
+    runningOs = "RPi"
 
 file = open('token.txt', 'r')
 botToken = file.read()
@@ -15,20 +17,13 @@ in1 = 7
 in2 = 11
 in3 = 13
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(in1, GPIO.OUT)
-GPIO.setup(in2, GPIO.OUT)
-GPIO.setup(in3, GPIO.OUT)
-
-GPIO.output(in1, False)
-GPIO.output(in2, False)
-GPIO.output(in3, False)
-
 est=datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-timeforscedule = datetime.time(hour=1, minute=34, tzinfo=est)
+timeforscedule = datetime.time(hour=3, tzinfo=est)
 listoftimes =list()
 listoftimes.append(datetime.time(hour=1, minute=0, tzinfo=est))    #This cant be empty or it thorws an error so making it before the scedule run should be fine
 listofallinfo = list()
+listofallinfo.append([1, 0, 0])
+Zones = {1: 7, 2: 11, 3: 13}
 
 intents = discord.Intents.default()
 intents.members = True
@@ -41,63 +36,56 @@ bot.remove_command("help")
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
-    send_message.start()
+    sceduler.start()
     dailyloop.start()
-    #bot.loop.create_task(background_task())
 
 @tasks.loop(time=timeforscedule)
-async def send_message():
+async def sceduler():
     channel = bot.get_channel(1164845979879624726)
     day = datetime.date.weekday(datetime.datetime.now())
     listoftimes.clear()
     listofallinfo.clear()
     file1 = open('days/'+str(day)+'.txt', 'r')
     Lines = file1.read().splitlines()
-    await channel.send("Todays sceduled runs are...")
+    if len(Lines)!=0:
+        await channel.send("Todays sceduled runs are...")
     for line in Lines:
         timeofday, zone, length = line.split()
         await channel.send(timeofday+":00 : Zone "+zone+" for "+length+" minutes")
         listoftimes.append(datetime.time(hour=int(timeofday), tzinfo=est))
         listofallinfo.append([timeofday, zone, length])
-    #await channel.send(Lines)
-    #await channel.send("Test")
-    await channel.send(listoftimes)
-    await channel.send(listofallinfo)
+    print(listoftimes)
+    print(listofallinfo)
 
-@tasks.loop(time=listoftimes)
+@tasks.loop(minutes=1)
 async def dailyloop():
     channel = bot.get_channel(1164845979879624726)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(in1, GPIO.OUT)
-    GPIO.setup(in2, GPIO.OUT)
-    GPIO.setup(in3, GPIO.OUT)
     today = datetime.datetime.now()
     hour=today.hour
-    boolean = True
-    for i in (0, len(listofallinfo)):
-        if int(listofallinfo[i][0])==hour:
-            await channel.send("Running zone "+listofallinfo[i][1]+" for "+listofallinfo[i][2]+ "mins")
+    minute=today.minute
+    for i in range(len(listofallinfo)):
+        if int(listofallinfo[i][0])==hour and minute==0:
+            await channel.send("Running zone "+listofallinfo[i][1]+" for "+listofallinfo[i][2]+ " mins")
             sleeptime = int(listofallinfo[i][2])
-            if(int(listofallinfo[i][1])==1):
-                GPIO.output(in1, True)
-                timeforsleeps.sleep(sleeptime)
-                GPIO.output(in1, False)
-                boolean = False
-            if(int(listofallinfo[i][1])==2):
-                GPIO.output(in2, True)
-                timeforsleeps.sleep(sleeptime)
-                GPIO.output(in2, False)
-                boolean = False
-            if(int(listofallinfo[i][1])==3):
-                GPIO.output(in3, True)
-                timeforsleeps.sleep(sleeptime)
-                GPIO.output(in3, False)
-                boolean = False
-            if(boolean):
-                await channel.send("Not a valid zone")
+            zone = int(listofallinfo[i][1])
+            if(zone!=0):
+                if(Zones[zone]):
+                    if(runningOs=="Win"):
+                        await channel.send("Turning on "+zone)
+                        timeforsleeps.sleep(sleeptime)
+                        await channel.send("Turning off "+zone)
+                    else:
+                        GPIO.setmode(GPIO.BOARD)
+                        GPIO.setup(in1, GPIO.OUT)
+                        GPIO.setup(in2, GPIO.OUT)
+                        GPIO.setup(in3, GPIO.OUT)
+                        GPIO.output(in1, False)
+                        GPIO.output(in2, False)
+                        GPIO.output(in3, False)
 
-
-    GPIO.cleanup()
+                        GPIO.output(Zones[zone], True)
+                        timeforsleeps.sleep(sleeptime)
+                        GPIO.output(Zones[zone], False) 
 
 @bot.command()
 async def ping(ctx):
@@ -105,27 +93,25 @@ async def ping(ctx):
 
 @bot.command()
 async def on(ctx, zone: int=0, sleeptime: int=0):
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(in1, GPIO.OUT)
-    GPIO.setup(in2, GPIO.OUT)
-    GPIO.setup(in3, GPIO.OUT)
-    if(zone!=0 and sleeptime!=0):
-        await ctx.send('Turning on zone '+str(zone)+" for "+str(sleeptime)+" mins")
-        if(zone==1):
-            GPIO.output(in1, True)
+    if(zone!=0 and sleeptime!=0 and Zones[zone]):
+        if(runningOs=="Win"):
+            await ctx.send("Turning on "+zone)
             timeforsleeps.sleep(sleeptime)
+            await ctx.send("Turning off "+zone)
+        else:
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(in1, GPIO.OUT)
+            GPIO.setup(in2, GPIO.OUT)
+            GPIO.setup(in3, GPIO.OUT)
             GPIO.output(in1, False)
-        if(zone==2):
-            GPIO.output(in2, True)
-            timeforsleeps.sleep(sleeptime)
             GPIO.output(in2, False)
-        if(zone==3):
-            GPIO.output(in3, True)
-            timeforsleeps.sleep(sleeptime)
             GPIO.output(in3, False)
+
+            GPIO.output(Zones[zone], True)
+            timeforsleeps.sleep(sleeptime)
+            GPIO.output(Zones[zone], False) 
     else:
         await ctx.send('Please use two numbers Usage: ~on ZONE TIME')
-    GPIO.cleanup()
 
 @bot.command()
 async def add(ctx, day: int=7, hour: int=0, zone: int=0, minutes: int=0):
