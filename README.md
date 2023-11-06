@@ -1,4 +1,13 @@
 # Sprinkler-Bot
 A Discord bot that uses a Raspberry Pi and Discord.py to be able to schedule and run a sprinkler system over the internet
 
-NOTE: My code for privacy reasons at an not included file to find the Discord bot token so I can keep it private. If you want to use my code as is, in the same directory where you put index.py also include token.txt file with your Discord bot token. Alternativly, delete my code near the start of each file that sets the botToken using a file and at the bottom instead add your own Discord token on the last line.
+After downloading code, run ```python3 -m pip install -r requirments.txt``` to download all dependencies for the code. The main two are discord.py and its dependencies and then Rpi.GPIO which is how this code interacts with the GPIO pins on the Rasberry Pi. Note: This code is runnable on a Windows computer but cannot interact with a relay board so actual sprinkler interactions are impossible unless this code is run on a Pi. 
+
+Further Note: If you are familiar with Discord bots you know each of them require a unique bot token to run. I have not included my own token for obvious reasons so in the same directory in which you put index.py also include a token.txt file with your own unique bot token or change the last line of index.py from
+```
+bot.run(botToken)
+```
+to
+```
+bot.run(YourTokenHere)
+```
