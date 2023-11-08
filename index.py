@@ -11,6 +11,7 @@ if platform.system() != "Windows":
 with open("token.txt", "r") as tokenFile:
     botToken = tokenFile.read().strip()
 description='I run some sprinklers'
+numberOfCurrentZones = 3
 
 est=datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 timeForScedueling = datetime.time(hour=3, tzinfo=est)
@@ -65,7 +66,7 @@ async def dailyloop():
             sleeptime = int(listOfDayInfo[i][2])
             zone = int(listOfDayInfo[i][1])
             if(zone!=0):                                    #I set zone to be 0 for a fail out that I dont want to print something for, 
-                if not (zone>0 and zone < 4):               #so that is why this is seperate from following if statement
+                if not (zone>0 and zone <= numberOfCurrentZones):               #so that is why this is seperate from following if statement
                     await channel.send("Not a valid zone")
                     return
                 if(runningOs=="Win"):
@@ -91,7 +92,7 @@ async def ping(ctx):
 
 @bot.command(name="on")
 async def maunalSprinklerTurnOn(ctx, zone: int=0, sleeptime: int=0):
-    if not (zone!=0 and sleeptime!=0 and ZONES[zone]):
+    if not (zone!=0 and sleeptime!=0 and zone<=numberOfCurrentZones):
         await ctx.send('Please use two numbers Usage: ~on ZONE TIME')
         return
     
