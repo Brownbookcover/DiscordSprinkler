@@ -64,24 +64,26 @@ async def dailyloop():
             await channel.send("Running zone "+listOfDayInfo[i][1]+" for "+listOfDayInfo[i][2]+ " mins")
             sleeptime = int(listOfDayInfo[i][2])
             zone = int(listOfDayInfo[i][1])
-            if(zone!=0):
-                if(ZONES[zone]):
-                    if(runningOs=="Win"):
-                        await channel.send("Turning on "+str(zone))
-                        timeforsleeps.sleep(sleeptime)
-                        await channel.send("Turning off "+str(zone))
-                    else:
-                        GPIO.setmode(GPIO.BOARD)
-                        GPIO.setup(ZONES[1], GPIO.OUT)
-                        GPIO.setup(ZONES[2], GPIO.OUT)
-                        GPIO.setup(ZONES[3], GPIO.OUT)
-                        GPIO.output(ZONES[1], False)
-                        GPIO.output(ZONES[2], False)
-                        GPIO.output(ZONES[3], False)
+            if(zone!=0):                                    #I set zone to be 0 for a fail out that I dont want to print something for, 
+                if not (zone>0 and zone < 4):               #so that is why this is seperate from following if statement
+                    await channel.send("Not a valid zone")
+                    return
+                if(runningOs=="Win"):
+                    await channel.send("Turning on "+str(zone))
+                    timeforsleeps.sleep(sleeptime)
+                    await channel.send("Turning off "+str(zone))
+                else:
+                    GPIO.setmode(GPIO.BOARD)
+                    GPIO.setup(ZONES[1], GPIO.OUT)
+                    GPIO.setup(ZONES[2], GPIO.OUT)
+                    GPIO.setup(ZONES[3], GPIO.OUT)
+                    GPIO.output(ZONES[1], False)
+                    GPIO.output(ZONES[2], False)
+                    GPIO.output(ZONES[3], False)
 
-                        GPIO.output(ZONES[zone], True)
-                        timeforsleeps.sleep(sleeptime)
-                        GPIO.output(ZONES[zone], False) 
+                    GPIO.output(ZONES[zone], True)
+                    timeforsleeps.sleep(sleeptime)
+                    GPIO.output(ZONES[zone], False) 
 
 @bot.command()
 async def ping(ctx):
