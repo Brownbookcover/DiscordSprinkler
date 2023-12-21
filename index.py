@@ -41,7 +41,7 @@ async def sceduler():
     day = datetime.date.weekday(datetime.datetime.now())
     listOfDayTimes.clear()
     listOfDayInfo.clear()
-
+ 
     with open("days/" + str(day) + ".txt", "r") as dayFile:
         Lines = dayFile.read().splitlines()
     if len(Lines)!=0:
